@@ -1,0 +1,758 @@
+<style>
+    html, body {
+        -ms-overflow-style: none !important;  
+        scrollbar-width: none !important;  
+        margin: 0 !important;
+        padding: 0 !important;
+        background-color: #09090b; 
+    }
+
+    html::-webkit-scrollbar, body::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+
+    p:empty {
+        display: none !important;
+    }
+
+    body {
+        --color-news: #00ff88;      
+        --color-reviews: #00d8ff;   
+        --tc-current-accent: var(--color-news);
+        --tc-bg: #09090b;           
+        --tc-surface: #121214;      
+        --tc-text: #f8fafc;         
+        --tc-gray: #94a3b8;         
+        --tc-border: #27272a;       
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--tc-text);
+        line-height: 1.6;
+        width: 100%;
+        min-height: 100vh;
+        overflow-x: hidden;
+        position: relative;
+        text-align: left;
+    }
+
+    *, 
+    *::before, 
+    *::after {
+        box-sizing: border-box;
+    }
+
+    #scroll-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 3px;
+        background-color: var(--color-news); 
+        box-shadow: 0 0 10px var(--color-news), 0 0 5px var(--color-news);
+        z-index: 9999;
+        transition: width 0.1s ease-out;
+    }
+
+    a, a:hover, a:focus, a:active {
+        text-decoration: none !important;
+        color: inherit;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+    .tc-ticker-wrap {
+        position: absolute; 
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: #000;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+        height: 40px;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        z-index: 9990;
+    }
+
+    .tc-ticker-item {
+        position: absolute;
+        width: 100%;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        color: var(--tc-gray);
+        opacity: 0;
+        transform: translateY(15px);
+        transition: all 0.4s ease-out;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 0 5%;
+        pointer-events: none;
+    }
+
+    .tc-ticker-item.active {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    .tc-ticker-item span {
+        color: var(--tc-current-accent);
+        font-weight: 700;
+        margin-right: 8px;
+        transition: color 0.5s ease;
+    }
+
+    .tc-main-header {
+        margin-bottom: 30px; 
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        border-bottom: 1px solid var(--tc-border);
+        padding: 70px 5% 10px 5%; 
+    }
+
+    .tc-brand-title {
+        font-size: 48px;
+        font-weight: 900;
+        letter-spacing: -1.5px;
+        color: var(--tc-text);
+        line-height: 1;
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    #kb-typing-text::before {
+        content: '\200B'; 
+    }
+
+    .tc-brand-title .cursor {
+        display: inline-block;
+        color: var(--tc-current-accent);
+        margin-left: 2px;
+        animation: blink 1s step-end infinite;
+        transition: color 0.5s ease;
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700;
+    }
+
+    .tc-brand-title .cursor::after {
+        content: '_';
+    }
+
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+    }
+
+    .tc-date-line {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        color: var(--tc-gray);
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .tc-section-wrapper { 
+        margin-bottom: 60px;
+        display: flex;
+        flex-direction: row; 
+        gap: 50px;
+        position: relative;
+        align-items: flex-start;
+        padding: 0 5%; 
+    }
+
+    .tc-sidebar-col {
+        flex: 0 0 220px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+        position: -webkit-sticky;
+        position: sticky;
+        top: 30px;
+        z-index: 10;
+        align-self: flex-start; 
+        height: max-content;
+    }
+
+    .tc-sidebar-text {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .tc-section-title {
+        font-size: 24px;
+        font-weight: 900;
+        color: var(--tc-text);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .tc-section-title::before {
+        content: '';
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: var(--tc-current-accent);
+        box-shadow: 0 0 10px var(--tc-current-accent);
+        transition: all 0.5s ease;
+    }
+
+    .tc-section-desc {
+        font-size: 13px;
+        color: var(--tc-gray);
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .tc-btn-view {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--tc-text);
+        padding: 10px 16px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--tc-border);
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .tc-btn-view:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--tc-current-accent);
+        color: var(--tc-current-accent);
+    }
+
+    .tc-sidebar-list {
+        list-style: none;
+        padding: 0;
+        margin: 5px 0 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        border-top: 1px dashed var(--tc-border);
+        padding-top: 20px;
+    }
+
+    .tc-sidebar-list li {
+        font-size: 13px;
+        line-height: 1.4;
+        position: relative;
+        padding-left: 18px;
+    }
+
+    .tc-sidebar-list li::before {
+        content: '>';
+        position: absolute;
+        left: 0;
+        top: 0;
+        color: var(--tc-current-accent);
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: bold;
+        transition: color 0.5s ease;
+    }
+
+    .tc-sidebar-list a {
+        color: var(--tc-gray);
+        transition: color 0.3s ease;
+        display: block;
+    }
+
+    .tc-sidebar-list a:hover {
+        color: var(--tc-current-accent);
+        animation: glitch-text-anim 3s infinite linear;
+    }
+
+    .tc-articles-col { 
+        flex: 1;
+        display: flex; 
+        flex-direction: column; 
+        gap: 25px; 
+    }
+
+    .tc-article-card {
+        display: flex;
+        align-items: stretch;
+        gap: 25px;
+        padding: 20px;
+        background: var(--tc-surface);
+        border: 1px solid var(--tc-border);
+        border-radius: 12px;
+        transition: background 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .tc-article-card:hover {
+        background: #18181b;
+        animation: glitch-card-anim 3s infinite linear;
+        z-index: 2;
+    }
+
+    @keyframes glitch-card-anim {
+        0%, 8%, 100% { transform: translate(0, 0) skew(0deg); box-shadow: none; }
+        1% { transform: translate(-1px, 1px) skew(-1deg); box-shadow: -2px 0 0 var(--color-news), 2px 0 0 var(--color-reviews); }
+        3% { transform: translate(1px, -1px) skew(1deg); box-shadow: 3px 0 0 var(--color-news), -3px 0 0 var(--color-reviews); }
+        5% { transform: translate(-1px, -1px) skew(0deg); box-shadow: -1px 0 0 var(--color-news), 1px 0 0 var(--color-reviews); }
+        7% { transform: translate(1px, 1px) skew(1deg); box-shadow: 2px 0 0 var(--color-news), -2px 0 0 var(--color-reviews); }
+    }
+
+    .tc-thumb {
+        flex-shrink: 0;
+        width: 220px;
+        height: 150px;
+        overflow: hidden;
+        border-radius: 8px;
+        background: #222;
+    }
+
+    .tc-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: grayscale(40%) contrast(1.1) brightness(0.8);
+        transition: filter 0.3s ease;
+        display: block;
+    }
+
+    .tc-article-card:hover .tc-thumb img { 
+        filter: grayscale(0%) contrast(1) brightness(1);
+        animation: glitch-img-anim 3s infinite linear;
+    }
+
+    @keyframes glitch-img-anim {
+        0%, 8%, 100% { transform: scale(1.05) translate(0); filter: grayscale(0%) contrast(1) brightness(1); }
+        2% { transform: scale(1.06) translate(-1px, 1px); filter: grayscale(0%) contrast(1.5) hue-rotate(10deg); }
+        4% { transform: scale(1.04) translate(1px, -1px); filter: grayscale(0%) contrast(1.1) hue-rotate(-10deg); }
+        6% { transform: scale(1.05) translate(-1px, -1px); filter: grayscale(0%) contrast(1.4) hue-rotate(20deg); }
+    }
+
+    .tc-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .tc-headline {
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        line-height: 1.3;
+        margin: 0 0 10px 0;
+        color: var(--tc-text);
+        transition: color 0.3s ease;
+    }
+    
+    .tc-article-card:hover .tc-headline { 
+        color: var(--tc-current-accent); 
+        animation: glitch-text-anim 3s infinite linear;
+    }
+
+    @keyframes glitch-text-anim {
+        0%, 8%, 100% { text-shadow: none; color: var(--tc-current-accent); }
+        2% { text-shadow: 1px 0 0 var(--color-news), -1px 0 0 var(--color-reviews); color: var(--tc-text); }
+        4% { text-shadow: -1px 0 0 var(--color-news), 1px 0 0 var(--color-reviews); color: #fff; }
+        6% { text-shadow: 2px 0 0 var(--color-news), -2px 0 0 var(--color-reviews); color: var(--tc-current-accent); }
+    }
+
+    .tc-excerpt {
+        font-size: 14px;
+        color: var(--tc-gray);
+        margin: 0 0 15px 0;
+        font-weight: 400;
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .tc-meta-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: auto;
+    }
+
+    .tc-badge {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: var(--tc-current-accent);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: color 0.5s ease;
+    }
+
+    .tc-meta {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        color: var(--tc-gray);
+        text-transform: uppercase;
+    }
+
+    @media (max-width: 850px) {
+        .tc-main-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+            padding-top: 60px; 
+        }
+
+        .tc-section-wrapper {
+            flex-direction: column;
+            gap: 20px;
+            padding: 0; 
+        }
+
+        .tc-sidebar-col {
+            flex: none;
+            width: 100%;
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: space-between;
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: var(--tc-bg);
+            padding: 15px 5%; 
+            border-bottom: 1px solid var(--tc-border);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            gap: 15px;
+        }
+
+        .tc-sidebar-list {
+            display: none;
+        }
+
+        .tc-sidebar-text {
+            flex: 1;
+            gap: 4px;
+        }
+
+        .tc-btn-view {
+            margin-top: 3px;
+            white-space: nowrap;
+        }
+
+        .tc-section-title { font-size: 20px; }
+
+        .tc-section-desc {
+            font-size: 11px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .tc-articles-col { padding: 0 5%; }
+
+        .tc-article-card { 
+            flex-direction: row; 
+            padding: 15px; 
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .tc-thumb { 
+            width: 100px; 
+            height: 100px; 
+            border-radius: 6px;
+        }
+        
+        .tc-content { justify-content: flex-start; }
+        .tc-headline { font-size: 16px; margin-bottom: 8px; }
+        
+        .tc-excerpt {
+            font-size: 12px;
+            margin-bottom: 10px;
+            -webkit-line-clamp: 2; 
+        }
+        
+        .tc-meta-row { flex-wrap: wrap; gap: 8px; }
+        .tc-badge { font-size: 9px; padding: 3px 6px; }
+        .tc-meta { font-size: 9px; }
+        .tc-brand-title { font-size: 36px; }
+    }
+</style>
+
+<div id="scroll-progress"></div>
+
+<div class="tc-ticker-wrap">
+    <div class="tc-ticker-item active"><span>> NEWS</span> King Bible Audio Officially Launches on Android</div>
+    <div class="tc-ticker-item"><span>> NEWS</span> Ministify OS Introduces 'Ministry-in-a-Tab' Ecosystem</div>
+    <div class="tc-ticker-item"><span>> NEWS</span> Ministry OS Hub Integrates with Popular Church APIs</div>
+    <div class="tc-ticker-item"><span>> NEWS</span> Open-Source Bible Scraper Gets Major Performance Boost</div>
+    <div class="tc-ticker-item"><span>> REVIEW</span> Review: Show Bible Presentation Software</div>
+    <div class="tc-ticker-item"><span>> REVIEW</span> Top Client-Side Storage Solutions for Web Apps</div>
+    <div class="tc-ticker-item"><span>> REVIEW</span> Best Open-Source Fonts for On-Screen Sermon Notes</div>
+    <div class="tc-ticker-item"><span>> REVIEW</span> Linux vs ChromeOS for the Traveling Missionary</div>
+</div>
+
+<header class="tc-main-header">
+    <h1 class="tc-brand-title"><span id="kb-typing-text"></span><span class="cursor"></span></h1>
+    <span id="tc-live-date" class="tc-date-line"></span>
+</header>
+
+<div class="tc-section-wrapper" data-color="var(--color-news)">
+    <div class="tc-sidebar-col">
+        <div class="tc-sidebar-text">
+            <h2 class="tc-section-title">Updates</h2>
+            <p class="tc-section-desc">Read recent news and updates from the King Bible development team and other FaithTech related articles.</p>
+        </div>
+        <a href="#" class="tc-btn-view">View_All()</a>
+        
+        <ul class="tc-sidebar-list">
+            <li><a href="#">King Bible Audio Officially Launches on Android</a></li>
+            <li><a href="#">Ministify OS Introduces 'Ministry-in-a-Tab' Ecosystem</a></li>
+            <li><a href="#">Ministry OS Hub Integrates with Popular Church APIs</a></li>
+            <li><a href="#">Open-Source Bible Scraper Gets Major Performance Boost</a></li>
+        </ul>
+    </div>
+    
+    <div class="tc-articles-col">
+        <a href="#" class="tc-article-card">
+            <div class="tc-thumb">
+                <img src="https://images.pexels.com/photos/601170/pexels-photo-601170.jpeg" alt="Audio App Launch">
+            </div>
+            <div class="tc-content">
+                <h3 class="tc-headline">King Bible Audio Officially Launches on Android</h3>
+                <p class="tc-excerpt">After successful beta testing and passing the 20-tester rule, the standalone KJV audio app is now available for download on the Play Store.</p>
+                <div class="tc-meta-row">
+                    <span class="tc-badge">Release</span>
+                    <div class="tc-meta">Mobile Apps</div>
+                </div>
+            </div>
+        </a>
+
+        <a href="#" class="tc-article-card">
+            <div class="tc-thumb">
+                <img src="https://images.pexels.com/photos/756780/pexels-photo-756780.jpeg" alt="Sleek Modern Tech Hub Interface">
+            </div>
+            <div class="tc-content">
+                <h3 class="tc-headline">Ministify OS Introduces 'Ministry-in-a-Tab' Ecosystem</h3>
+                <p class="tc-excerpt">The new centralized dashboard connects sermon prep, presentation software, and Bible study tools into a single, cohesive browser environment.</p>
+                <div class="tc-meta-row">
+                    <span class="tc-badge">Update</span>
+                    <div class="tc-meta">Web Platforms</div>
+                </div>
+            </div>
+        </a>
+
+        <a href="#" class="tc-article-card">
+            <div class="tc-thumb">
+                <img src="https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg" alt="Developers coding">
+            </div>
+            <div class="tc-content">
+                <h3 class="tc-headline">Ministry OS Hub Integrates with Popular Church APIs</h3>
+                <p class="tc-excerpt">The latest update allows direct API fetching for existing church databases, making sermon syncing seamless across devices.</p>
+                <div class="tc-meta-row">
+                    <span class="tc-badge">Integration</span>
+                    <div class="tc-meta">Platforms</div>
+                </div>
+            </div>
+        </a>
+
+        <a href="#" class="tc-article-card">
+            <div class="tc-thumb">
+                <img src="https://images.pexels.com/photos/5380642/pexels-photo-5380642.jpeg" alt="Security Tech">
+            </div>
+            <div class="tc-content">
+                <h3 class="tc-headline">Open-Source Bible Scraper Gets Major Performance Boost</h3>
+                <p class="tc-excerpt">The Python-based tool for formatting legacy HTML Bibles into JSON is now 40% faster thanks to recent community commits.</p>
+                <div class="tc-meta-row">
+                    <span class="tc-badge">Open Source</span>
+                    <div class="tc-meta">Development</div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="tc-section-wrapper" data-color="var(--color-reviews)">
+    <div class="tc-sidebar-col">
+        <div class="tc-sidebar-text">
+            <h2 class="tc-section-title">Reviews</h2>
+            <p class="tc-section-desc">In-depth technical analysis, software evaluations, and hardware recommendations tailored specifically for digital ministry environments.</p>
+        </div>
+        <a href="#" class="tc-btn-view">Read_More()</a>
+        
+        <ul class="tc-sidebar-list">
+            <li><a href="#">Review: Show Bible Presentation Software</a></li>
+            <li><a href="#">Top Client-Side Storage Solutions for Web Apps</a></li>
+            <li><a href="#">Best Open-Source Fonts for On-Screen Sermon Notes</a></li>
+            <li><a href="#">Linux vs ChromeOS for the Traveling Missionary</a></li>
+        </ul>
+    </div>
+    
+    <div class="tc-articles-col">
+        <a href="#" class="tc-article-card">
+            <div class="tc-thumb">
+                <img src="https://images.pexels.com/photos/5077053/pexels-photo-5077053.jpeg" alt="Presentation tablet with control icons in hand">
+            </div>
+            <div class="tc-content">
+                <h3 class="tc-headline">Review: Show Bible Presentation Software</h3>
+                <p class="tc-excerpt">A robust, lightweight alternative to standard church presentation tools that runs directly in your browser with zero installation required.</p>
+                <div class="tc-meta-row">
+                    <span class="tc-badge">Editor's Pick</span>
+                    <div class="tc-meta">Software Review</div>
+                </div>
+            </div>
+        </a>
+
+        <a href="#" class="tc-article-card">
+            <div class="tc-thumb">
+                <img src="https://images.pexels.com/photos/5077059/pexels-photo-5077059.jpeg" alt="Storage icons visualization linking devices and databases">
+            </div>
+            <div class="tc-content">
+                <h3 class="tc-headline">Top Client-Side Storage Solutions for Web Apps</h3>
+                <p class="tc-excerpt">Evaluating LocalStorage, SessionStorage, and IndexedDB for building responsive, offline-capable ministry tools in rural areas.</p>
+                <div class="tc-meta-row">
+                    <span class="tc-badge">Architecture</span>
+                    <div class="tc-meta">Tech Analysis</div>
+                </div>
+            </div>
+        </a>
+
+        <a href="#" class="tc-article-card">
+            <div class="tc-thumb">
+                <img src="https://images.pexels.com/photos/1779487/pexels-photo-1779487.jpeg" alt="Screen design and code">
+            </div>
+            <div class="tc-content">
+                <h3 class="tc-headline">Best Open-Source Fonts for On-Screen Sermon Notes</h3>
+                <p class="tc-excerpt">We test the most legible typography options for church projection screens, comparing JetBrains Mono, Inter, and Roboto.</p>
+                <div class="tc-meta-row">
+                    <span class="tc-badge">Design</span>
+                    <div class="tc-meta">UI/UX</div>
+                </div>
+            </div>
+        </a>
+
+        <a href="#" class="tc-article-card">
+            <div class="tc-thumb">
+                <img src="https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg" alt="Laptop on desk">
+            </div>
+            <div class="tc-content">
+                <h3 class="tc-headline">Linux vs ChromeOS for the Traveling Missionary</h3>
+                <p class="tc-excerpt">A deep dive into the pros and cons of utilizing Fedora versus ChromeOS Flex on low-end hardware in remote locations.</p>
+                <div class="tc-meta-row">
+                    <span class="tc-badge">OS</span>
+                    <div class="tc-meta">Hardware</div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<script>
+    (function() {
+        window.addEventListener('scroll', function() {
+            var winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            var scrolled = 0;
+            if (height > 0) {
+                scrolled = (winScroll / height) * 100;
+            }
+            document.getElementById("scroll-progress").style.width = scrolled + "%";
+        });
+
+        const textToType = "KB Tech";
+        const typeTarget = document.getElementById("kb-typing-text");
+        let typeIndex = 3; 
+        let isDeleting = false;
+        
+        function typeWriter() {
+            const currentText = textToType.substring(0, typeIndex);
+            typeTarget.innerHTML = currentText;
+
+            let typeSpeed = 150; 
+
+            if (isDeleting) {
+                typeSpeed = 100; 
+            }
+
+            if (!isDeleting && typeIndex === textToType.length) {
+                typeSpeed = 3000;
+                isDeleting = true;
+            } else if (isDeleting && typeIndex === 3) {
+                isDeleting = false;
+                typeSpeed = 1000;
+            }
+
+            if (isDeleting) {
+                typeIndex--;
+            } else {
+                typeIndex++;
+            }
+
+            setTimeout(typeWriter, typeSpeed);
+        }
+        typeWriter();
+
+        function updateDate() {
+            var dateElement = document.getElementById('tc-live-date');
+            if(dateElement) {
+                var today = new Date();
+                var pad = (n) => n < 10 ? '0' + n : n;
+                var dateString = today.getFullYear() + "-" + 
+                                 pad(today.getMonth() + 1) + "-" + 
+                                 pad(today.getDate()) + " // " + 
+                                 pad(today.getHours()) + ":" + 
+                                 pad(today.getMinutes()) + " SYS_TIME";
+                dateElement.innerHTML = dateString;
+            }
+        }
+        updateDate();
+        setInterval(updateDate, 60000); 
+
+        var tickerHeadlines = document.querySelectorAll('.tc-ticker-item');
+        var tickerIndex = 0;
+        if(tickerHeadlines.length > 0) {
+            setInterval(function() {
+                tickerHeadlines[tickerIndex].classList.remove('active');
+                tickerIndex = (tickerIndex + 1) % tickerHeadlines.length;
+                tickerHeadlines[tickerIndex].classList.add('active');
+            }, 3500);
+        }
+
+        var container = document.body;
+        var sections = document.querySelectorAll('.tc-section-wrapper');
+        
+        var observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    var newColor = entry.target.getAttribute('data-color');
+                    if (newColor) {
+                        container.style.setProperty('--tc-current-accent', newColor);
+                    }
+                }
+            });
+        }, {
+            root: null,
+            rootMargin: '-40% 0px -40% 0px', 
+            threshold: 0
+        });
+
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+    })();
+</script>
